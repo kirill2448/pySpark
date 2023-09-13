@@ -1,0 +1,49 @@
+from pyspark.sql import SparkSession
+
+
+spark = SparkSession.builder \
+    .appName("") \
+    .getOrCreate()
+
+products = spark.createDataFrame([
+    (1, 'Barby'),
+    (2, 'GTAV'),
+    (3, 'patato'),
+    (4, 'Table')
+], ['ID', 'NAME'])
+
+categories = spark.createDataFrame([
+    (1, 'Toys'),
+    (2, 'computer games'),
+    (3, 'Rock star prodject')
+], ['ID', 'NAME'])
+
+product_categories = spark.createDataFrame([
+    (1, 1),
+    (2, 2),
+    (2, 3)
+], ['ID', 'ProductId', 'CategoryId'])
+
+products.createOrReplaceTempView("Products")
+categories.createOrReplaceTempView("Categories")
+product_categories.createOrReplaceTempView("ProductCategories")
+
+
+result = spark.sql(
+    SELECT p.NAME as Product, c.NAME as Category
+    FROM Products p
+    LEFT JOIN ProductCategories pc ON p.ID = pc.ProductId
+    LEFT JOIN Categories c ON pc.CategoryId = c.ID
+    )
+
+result.show()
+
+result1 = spark.sql(
+    SELECT p.NAME as Product, concat_ws(', ', collect_list(c.NAME)) AS Categories
+    FROM Products p
+    LEFT JOIN ProductCategories pc ON p.ID = pc.ProductId
+    LEFT JOIN Categories c ON pc.CategoryId = c.ID
+    GROUP BY p.NAME
+    )
+
+result1.show()
